@@ -7,11 +7,13 @@
 <style>
   :root { --bg:#fff; --fg:#1a1a1a; --muted:#666; --card:#f5f5f7; --accent:#0a6cff; }
   @media (prefers-color-scheme: dark) { :root { --bg:#111; --fg:#eee; --muted:#999; --card:#1c1c1e; --accent:#4c9aff; } }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.7 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; }
   main { max-width:640px; margin:0 auto; padding:32px 16px; }
   .card { background:var(--card); border-radius:12px; padding:16px; margin:16px 0; }
-  a.btn { display:inline-block; background:var(--accent); color:#fff; padding:12px 20px; border-radius:8px; text-decoration:none; font-weight:600; }
-  code { word-break:break-all; font-size:13px; }
+  a.btn { display:inline-block; background:var(--accent); color:#fff; padding:14px 28px; border-radius:10px; text-decoration:none; font-weight:600; font-size:18px; }
+  ol { padding-left:1.4em; }
+  ol li { margin:14px 0; }
+  code { word-break:break-all; font-size:15px; background:var(--card); padding:1px 6px; border-radius:4px; }
   .muted { color:var(--muted); font-size:14px; }
 </style>
 </head>
@@ -20,16 +22,12 @@
   <h1>Android 客户端下载</h1>
   <div class="card" id="latest">载入中…</div>
 
-  <h2>下载后请先验证</h2>
+  <h2>怎么安装</h2>
   <ol id="steps">
-    <li>比对下方的 SHA-256 校验码(例如在手机上用文件管理器或 <code>sha256sum</code>)。</li>
-    <li>安装前核对签名证书指纹,确认与官方发布一致:<br>
-        <code>apksigner verify --print-certs app.apk</code></li>
+    <li>点击上方的「下载」按钮,等待下载完成。</li>
+    <li>点击安装文件,按提示安装。</li>
   </ol>
-  <div class="card">
-    <strong>签名证书 SHA-256 指纹</strong><br>
-    <code id="cert">—</code>
-  </div>
+  <p class="muted" id="hint"></p>
 
   <p class="muted">本站只记录每日、每版本的下载总次数,不记录 IP、设备或任何个人信息。</p>
   <p class="muted">如果此页面无法打开,请查看 <a href="mirrors.html">备用入口</a>。</p>
@@ -39,14 +37,12 @@ fetch("releases.json", { cache: "no-store" })
   .then(r => r.json())
   .then(d => {
     const r = d.releases[0];
-    document.getElementById("cert").textContent = d.cert_sha256 || "—";
-    const mb = (r.size / 1048576).toFixed(1);
+    const mb = (r.size / 1048576).toFixed(0);
     const isZip = r.archive === "zip";
     document.getElementById("latest").innerHTML =
       `<p><strong>版本 ${r.version}</strong> · ${mb} MB · ${r.date}</p>` +
-      `<p><a class="btn" href="${r.url}">${isZip ? "下载 (ZIP 压缩包)" : "下载 APK"}</a></p>` +
-      `<p class="muted">${isZip ? "压缩包" : ""} SHA-256:<br><code>${r.sha256}</code></p>` +
-      (isZip ? `<p class="muted">解压后的 APK (${r.apk_name}) SHA-256:<br><code>${r.apk_sha256}</code></p>` : "");
+      `<p><a class="btn" href="${r.url}">下载</a></p>` +
+      `<p class="muted">文件较大,建议连接 Wi-Fi 后下载。</p>`;
     // 点击下载时通知计数端点 (releases.json 的 hit_url); 失败不影响下载, 被封时计数会偏低
     const btn = document.querySelector("#latest a.btn");
     if (d.hit_url && btn) {
@@ -56,10 +52,16 @@ fetch("releases.json", { cache: "no-store" })
     }
     if (isZip) {
       document.getElementById("steps").innerHTML =
-        `<li>下载 ZIP,先核对压缩包的 SHA-256。</li>` +
-        `<li>用文件管理器解压缩,得到 <code>${r.apk_name}</code>。</li>` +
-        `<li>核对解压后 APK 的 SHA-256,并检查签名证书指纹:<br><code>apksigner verify --print-certs ${r.apk_name}</code></li>` +
-        `<li>确认无误后再安装 APK。</li>`;
+        `<li>点击上方的「下载」按钮,等待下载完成。下载的是一个压缩包(<code>.zip</code>),需要先解压缩。</li>` +
+        `<li>打开手机的「文件管理」(或「文件」),进入「下载」文件夹。</li>` +
+        `<li>点击刚下载的 <code>.zip</code> 文件,选择「解压缩」或「提取」。</li>` +
+        `<li>解压后会出现一个 <code>${r.apk_name}</code> 文件,点击它,按提示安装。</li>`;
+      document.getElementById("hint").innerHTML =
+        `如果安装时提示「不允许安装未知来源的应用」,请按提示进入设置,允许当前使用的「文件管理」或浏览器安装应用,然后返回再点一次安装文件。<br>` +
+        `如果手机里找不到解压缩的选项,可以在应用商店安装一款文件管理或解压缩 App。`;
+    } else {
+      document.getElementById("hint").textContent =
+        "如果安装时提示「不允许安装未知来源的应用」,请按提示进入设置,允许当前使用的浏览器或文件管理安装应用,然后返回再点一次安装文件。";
     }
   })
   .catch(() => { document.getElementById("latest").textContent = "暂无可用版本。"; });
