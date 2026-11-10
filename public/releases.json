@@ -1,4 +1,15 @@
 {
   "cert_sha256": "",
-  "releases": []
+  "releases": [
+    {
+      "version": "146.0.7680.173",
+      "date": "2026-11-10",
+      "size": 153959143,
+      "sha256": "05c0c277f52c39e5e01c22464954f4aae60f472c85c9c6ecfa4064998d3c91ca",
+      "archive": "zip",
+      "apk_name": "freebrowser-146.0.7680.173.apk",
+      "apk_sha256": "0f9ae40ad0101c206a6df220b35515b72c3744feaf77c5950064f94b221439db",
+      "url": "https://github.com/waynetsai234-arch/docs-site/releases/download/v146.0.7680.173/freebrowser-146.0.7680.173.zip"
+    }
+  ]
 }
